@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 using DVT_Elevator.Enums;
+using System.Threading.Channels;
 
 namespace DVT_Elevator.Services
 {
@@ -37,17 +38,19 @@ namespace DVT_Elevator.Services
 
         private Elevator elevator { get; set; } = new Elevator() { ElevatorName = Guid.NewGuid().ToString().Split('-').OrderBy(x => x.Length).First(), State = ElevatorState.Stopped, MaxPassengerCount = 20 };
 
+        private readonly Channel<string> elevatorcomms;
 
         private readonly ControlRoom ControlRoom;
         // TODO:Change this config below to be configurable via appsettings.json
         private readonly BuildingConfigurations _configurations;
         private Timer? _timer = null;
         private readonly ILogger<ElevatorService> _logger;
-        public ElevatorService(ILogger<ElevatorService> logger, ControlRoom controlRoom, BuildingConfigurations configurations)
+        public ElevatorService(ILogger<ElevatorService> logger, ControlRoom controlRoom, BuildingConfigurations configurations, Channel<string> channel )
         {
             _logger = logger;
             ControlRoom = controlRoom;
             _configurations = configurations;
+            elevatorcomms = channel;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -139,29 +142,19 @@ namespace DVT_Elevator.Services
             while (elevator.CurrentElevatorFloor <= destinationfloor)
             {
                 //check if the floor we are on has passengers for the floor
-
-
-
-
-
-
-
-
-
-
                 if (elevator.Destinations.Where(x => x.DestinationFloor == elevator.CurrentElevatorFloor).Count() > 0 ||
                     ControlRoom.CheckFloorsForPickup(elevator.CurrentElevatorFloor, ElevatorDirection.Up).Select(x => x.PeopleCount).Sum() > 0)
                 {
-                    await OpenDoorElevator(ElevatorDirection.Up);
+                    await ValidateFloorToOpen(ElevatorDirection.Up);
                     //will need to change below logic to check if there is no one in the elevator and if the destinations are no more.
                     if (elevator.Destinations.Count() > 0)
                     {
                         destinationfloor = elevator.Destinations.OrderByDescending(x => x.DestinationFloor).FirstOrDefault().DestinationFloor;
                     }
                 }
-                _logger.LogInformation($"Elevator currently going to {elevator.CurrentElevatorFloor}");
+                LogElavatorinformation($"Elevator :{elevator.ElevatorName} is currently going to {elevator.CurrentElevatorFloor}");
                 elevator.CurrentElevatorFloor = elevator.CurrentElevatorFloor + 1;
-                _logger.LogInformation($"Elevator final destination {destinationfloor}");
+                //LogElavatorinformation($"Elevator final destination {destinationfloor}");
 
                 await Task.Delay(2000);
             }
@@ -170,19 +163,15 @@ namespace DVT_Elevator.Services
         }
         private async Task<bool> MoveDownElevatorAsync()
         {
-
-
-
             while (elevator.CurrentElevatorFloor >= 1)
             {
                 //check if the floor we are on has passengers for the floor
                 if (elevator.Destinations.Where(x => x.DestinationFloor == elevator.CurrentElevatorFloor).Count() > 0 ||
                     ControlRoom.CheckFloorsForPickup(elevator.CurrentElevatorFloor, ElevatorDirection.Up).Select(x => x.PeopleCount).Sum() > 0)
                 {
-                    await OpenDoorElevator(ElevatorDirection.Down);
-
+                    await ValidateFloorToOpen(ElevatorDirection.Down);
                 }
-                _logger.LogInformation($"Elevator currently going to {elevator.CurrentElevatorFloor}");
+                LogElavatorinformation($"Elevator currently going to {elevator.CurrentElevatorFloor}");
                 elevator.CurrentElevatorFloor = elevator.CurrentElevatorFloor - 1;
                 await Task.Delay(2000);
             }
@@ -269,39 +258,43 @@ namespace DVT_Elevator.Services
         /// use this to send messages to all the listeners
         /// </summary>
         /// <param name="Message">this is the message to be posted to any subs</param>
-        void _logger.LogInformation(string Message)
+        async void LogElavatorinformation(string Message)
         {
-            ElevatorCurrentMessage = Message;
-            NotifyObservers();
-        }
+            
+            await elevatorcomms.Writer.WriteAsync(Message);
 
-        public void RegisterObserver(IDashboardServer ContolRoomserver)
-        {
-            Console.WriteLine("Observer Added : " + ((DashboardRoom)ContolRoomserver).MainDashboard);
-            controlroomservers.Add(ContolRoomserver);
-        }
-        public void RemoveObserver(IDashboardServer ContolRoomserver)
-        {
-            Console.WriteLine("Observer Removed : " + ((DashboardRoom)ContolRoomserver).MainDashboard);
-            controlroomservers.Remove(ContolRoomserver);
-        }
-
-        public void NotifyObservers()
-        {
-            Console.WriteLine();
-            foreach (IDashboardServer observer in controlroomservers)
-            {
-                //By Calling the Update method, we are sending notifications to observers
-                observer.Update(ElevatorCurrentMessage);
-            }
+            //ElevatorCurrentMessage = Message;
+            //NotifyObservers();
         }
 
 
-        public void AddElevatorService(Elevator elevator)
-        {
 
-            Elevators.Add(elevator);
-        }
+
+
+        //changed from observer to channels
+
+        //public void RegisterObserver(IDashboardServer ContolRoomserver)
+        //{
+        //    Console.WriteLine("Observer Added : " + ((DashboardRoom)ContolRoomserver).MainDashboard);
+        //    controlroomservers.Add(ContolRoomserver);
+        //}
+        //public void RemoveObserver(IDashboardServer ContolRoomserver)
+        //{
+        //    Console.WriteLine("Observer Removed : " + ((DashboardRoom)ContolRoomserver).MainDashboard);
+        //    controlroomservers.Remove(ContolRoomserver);
+        //}
+
+        //public void NotifyObservers()
+        //{
+        //    Console.WriteLine();
+        //    foreach (IDashboardServer observer in controlroomservers)
+        //    {
+        //        //By Calling the Update method, we are sending notifications to observers
+        //        observer.Update(ElevatorCurrentMessage);
+        //    }
+        //}
+
+
 
     }
 

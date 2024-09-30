@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Channels;
 
 namespace DVT_Elevator
 {
@@ -17,6 +18,9 @@ namespace DVT_Elevator
         static void Main(string[] args)
         {
 
+
+            var Elevatorcomms = Channel.CreateUnbounded<string>();
+
             using IHost host = Host.CreateDefaultBuilder(args)
                     .ConfigureServices((context, services) =>//services =>
                     {
@@ -28,6 +32,10 @@ namespace DVT_Elevator
                         services.AddScoped<IDashboardServer, DashboardRoom>();
                         services.AddHostedService<ElevatorControlService>();
                         services.AddHostedService<PassengerRequestService>();
+
+
+                        services.AddSingleton(Elevatorcomms);
+
                     })
                     .Build();
 
@@ -88,7 +96,26 @@ namespace DVT_Elevator
                     try
                     {
                         var context = services.GetRequiredService<IDashboardServer>();
-                        context.ListenToElevators();
+                        context.SetListeningToElevatorsOn();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = services.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(ex, "An error occurred when loading configuration for building. {exceptionMessage}", ex.Message);
+                    }
+
+
+                }
+                else if (keyPressed == ConsoleKey.O)
+                {
+                    // TODO: implement observer pattern to allow push messaging from the elevator service to notify the
+                    
+                    using var scope = host.Services.CreateScope();
+                    var services = scope.ServiceProvider;
+                    try
+                    {
+                        var context = services.GetRequiredService<IDashboardServer>();
+                        context.SetListeningToElevatorsOff();
                     }
                     catch (Exception ex)
                     {

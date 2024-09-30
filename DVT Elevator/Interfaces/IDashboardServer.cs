@@ -2,7 +2,8 @@
 {
     public interface IDashboardServer
     {
-        void ListenToElevators();
+        void SetListeningToElevatorsOff();
+        void SetListeningToElevatorsOn();
 
         // Receive Notification from Elevator
         void Update(string message);

@@ -54,17 +54,30 @@ Curreny timetable:
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+<!-- ROADMAP -->
+## Requirements
+
+
+The console applicaƟon must include the following key features:
+- [x] Real-Time Elevator Status
+- [x] InteracƟve Elevator Control
+- [x] Multiple Floors and Elevators Support
+- [x] Efficient Elevator Dispatching
+- [x] Passenger Limit Handling
+- [ ] Consideration for Different Elevator Types
+- [ ] Real-Time OperaƟon
+
+
 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+- [x] Make sure its responsive by using async and background threads.
+- [x] Ensure the main logic for elevator movement is met.
+- [ ] Refactor the code change it from observer to channels for elevator status reporting
+- [ ] Still need to add more unit tests.
+- [ ] CI CD file to be added
+
 
 See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
 

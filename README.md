@@ -58,14 +58,14 @@ Curreny timetable:
 ## Requirements
 
 
-The console applicaƟon must include the following key features:
+The console application must include the following key features:
 - [x] Real-Time Elevator Status
-- [x] InteracƟve Elevator Control
+- [x] Interactive Elevator Control
 - [x] Multiple Floors and Elevators Support
 - [x] Efficient Elevator Dispatching
 - [x] Passenger Limit Handling
 - [ ] Consideration for Different Elevator Types
-- [ ] Real-Time OperaƟon
+- [ ] Real-Time Operation
 
 
 

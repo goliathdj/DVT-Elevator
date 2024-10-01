@@ -9,7 +9,7 @@ namespace DVT_Elevator
 {
     public class ControlRoom
     {
-        private List<Destination> Destinations { get; set; } = new List<Destination>();
+        public List<Destination> Destinations { get; set; } = new List<Destination>();
 
         public ControlRoom()
         {
@@ -48,9 +48,6 @@ namespace DVT_Elevator
 
         public Destination GetNextFloor(int currentFloor)
         {
-
-
-
             var currentListOfDestinations = Destinations.ToList();
             if (currentListOfDestinations is null || currentListOfDestinations.Count() < 1)
             {
